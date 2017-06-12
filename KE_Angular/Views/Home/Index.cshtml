@@ -2,6 +2,8 @@
     ViewData["title"] = "Knowledge Engine";
 }
 
+<link rel="stylesheet" href="~/bower_components/nvd3/build/nv.d3.css">
+
 <div ng-app="KEApp">
     <nav class="navbar navbar-default navbar-fixed-top" role="navigation" ng-controller="TabCtrl">
         <div class="container-fluid">
@@ -9,8 +11,7 @@
                 <ul class="nav nav-pills text-center">
                     <li ng-class="{true:'active',false:''}[nowActBtn==0]" ng-click="navBarClick(0)" style="display: inline-block; float: none"><a href="#" ng-click="">Webpages</a></li>
                     <li ng-class="{true:'active',false:''}[nowActBtn==1]" ng-click="navBarClick(1)" style="display: inline-block; float: none"><a href="#">Papers</a></li>
-                    <li ng-class="{true:'active',false:''}[nowActBtn==2]" ng-click="navBarClick(2)" style="display: inline-block; float: none"><a href="#">Images</a></li>
-                    <li ng-class="{true:'active',false:''}[nowActBtn==3]" ng-click="navBarClick(3)" style="display: inline-block; float: none"><a href="#">Folders</a></li>
+                    <li ng-class="{true:'active',false:''}[nowActBtn==2]" ng-click="navBarClick(2)" style="display: inline-block; float: none"><a href="#">Universe</a></li>
                     <li style="display: inline-block; float: none"><a data-toggle="modal" href="#myModal"><span class="glyphicon glyphicon-plus"></span></a></li>
                 </ul>
             </div>
@@ -32,6 +33,7 @@
                     </form>
                 </div>
                 <div class="modal-footer">
+                    <h4 ng-show="isAddingItem">Loading...</h4>
                     <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
                     <button type="button" class="btn btn-primary" ng-click="addItem()">Add</button>
                 </div>
@@ -41,22 +43,56 @@
 
     <div id="bodyContainer">
         <div class="row" ng-controller="PaperListCtrl" ng-init="getItemsList()">
-            <div class="col-sm-4">
+            <div class="col-sm-4" ng-show="nowActBtn!=2">
                 <div class="panel panel-default" style="margin-top: 1em; margin-bottom: 1em; border-radius: 0px;">
                     <div class="panel-body" style="padding-top: 1em;">
                         <form role="form">
                             <div class="input-group">
                                 <input type="text" class="form-control" placeholder="Search for..." style="margin: -10px; margin-left: -3px; margin-right: 0px; width: 232px" ng-model="searchString">
-                                <button type="button" class="btn btn-default" style="margin-left: .5em; border-width: 0px; font-size: 14px;"><span class="glyphicon glyphicon-flag"></span></button>
-                                <button type="button" class="btn btn-default" style="margin-left: .5em; border-width: 0px; font-size: 14px;"><span class="glyphicon glyphicon-sort-by-attributes"></span></button>
+                                <button ng-click="showGraph()" type="button" class="btn btn-default" style="margin-left: .5em; border-width: 0px; font-size: 14px;"><span class="glyphicon glyphicon-eye-open"></span></button>
+                                <button ng-click="refreshList()" type="button" class="btn btn-default" style="margin-left: .5em; border-width: 0px; font-size: 14px;"><span class="glyphicon glyphicon-refresh"></span></button>
                             </div><!-- /input-group -->
                         </form>
                     </div>
                     <div class="list-group" style="overflow-y:auto; height: 430px;">
-                        <a href="#" class="list-group-item" ng-repeat="item in (items | filter: searchString)" ng-click="getThePaper(item.doi)">
+
+                        <a href="#" class="list-group-item" ng-click="getItemsList()" ng-show="isShowingRef">
+                            <h4 style="color: #0094ff">Showing references...</h4>
+                            <h5>Click here to go back to main document list.</h5>
+                        </a>
+
+                        <a href="#" class="list-group-item" ng-click="getItemsList()" ng-show="isShowingCited">
+                            <h4 style="color: #0094ff">Showing cited by...</h4>
+                            <h5>Click here to go back to main document list.</h5>
+                        </a>
+
+                        <span class="list-group-item" ng-show="isShowingWebTag">
+                            <h4 style="color: #0094ff">
+                                Showing tag "{{currTag}}"
+                                <button ng-click="getWebItemsList()" type="button" class="btn btn-default pull-right" style="border-width: 0px; font-size: 14px; margin-top: -0.3em"><span class="glyphicon glyphicon-remove"></span></button>
+                            </h4>
+                            <a href="{{'http://en.wikipedia.org/wiki/' + currTag}}" }>Click here to show Wikipedia page...</a>
+                        </span>
+
+                        <span class="list-group-item" ng-show="isShowingKwd">
+                            <h4 style="color: #0094ff">
+                                Showing tag "{{currTag}}"
+                                <button ng-click="getItemsList()" type="button" class="btn btn-default pull-right" style="border-width: 0px; font-size: 14px; margin-top: -0.3em"><span class="glyphicon glyphicon-remove"></span></button>
+                            </h4>
+                        </span>
+
+
+                        <a href="#" ng-show="nowActBtn==1" class="list-group-item" ng-repeat="item in (items | filter: searchString)" ng-click="getThePaper(item.doi)">
                             <h4 style="text-overflow:ellipsis; overflow:hidden;" class="list-group-item-heading">{{item.title}}</h4>
                             <p class="list-group-item-text">{{item.authorsList[0].familyName}} et al. - <i>{{item.journalName}}</i>, {{item.year}}</p>
                         </a>
+
+                        <a href="#" ng-show="nowActBtn==0" class="list-group-item" ng-repeat="item in (items | filter: searchString)" ng-click="getThePage(item.attr.url)">
+                            <h4 style="text-overflow:ellipsis; overflow:hidden;" class="list-group-item-heading">{{item.attr.title}}</h4>
+                            <p class="list-group-item-text"><span ng-show="item.attr.author!=null">{{item.attr.author}}, </span><span ng-show="item.attr.date!=null">{{item.attr.date}} - </span>{{item.attr.domain}}</p>
+                        </a>
+
+
                     </div>
                 </div>
             </div>
@@ -76,23 +112,20 @@
                                 </button>
                                 <ul class="dropdown-menu">
                                     <li><a href="#">Dropdown link</a></li>
-                                    <li><a href="#">Dropdown link</a></li>
+                                    <li><a ng-click="deletePage(currPage.attr.url)" style="color:#ff0000">Delete Page</a></li>
                                 </ul>
                             </span>
                         </h5>
-                        <h3 ng-bind="currWebpage.title"></h3>
-                        <h5 style="text-transform: uppercase; color: #acacac;"><span ng-show="currWebpage.author!=null">{{currWebpage.author}}, </span><span ng-show="currWebpage.date_published!=null">{{currWebpage.date_published}} - </span>{{currWebpage.domain}}</h5>
-                        <p><a href="{{currWebpage.url}}">{{currWebpage.url}}</a></p>
-                        <p>&nbsp;</p>
-                        <p>{{currWebpage.excerpt}}</p>
+                        <h3 ng-bind="currWebpage.attr.title"></h3>
+                        <h5 style="text-transform: uppercase; color: #acacac;"><span ng-show="currWebpage.attr.author!=null">{{currWebpage.attr.author}}, </span><span ng-show="currWebpage.attr.date_published!=null">{{currWebpage.attr.date_published}} - </span>{{currWebpage.attr.domain}}</h5>
+                        <p><a href="{{currWebpage.attr.url}}">{{currWebpage.attr.url}}</a></p>
+                        <p>{{currWebpage.attr.excerpt}}</p>
                     </div>
-                    <div class="col-sm-12" ng-controller="PaperListCtrl" ng-hide="currWebpage.tags.length==0">
-                        <p>&nbsp;</p>
+                    <div class="col-sm-12" ng-hide="currWebpage.tags.length==0">
                         <p style="color: #acacac">TAGS</p>
                         <p>
-                            <span class="badge" style="background-color: #0094ff; margin-right: 5px;" ng-repeat="kw in currWebpage.tags">{{kw.tagname}}</span>
+                            <span class="badge" style="background-color: #0094ff; margin-right: 5px;" ng-click="showWebTag(kw)" ng-repeat="kw in currWebpage.tags">{{kw}}</span>
                         </p>
-                        <p>&nbsp;</p>
                     </div>
                     <div class="col-sm-12 pull-left" style="margin-top: 1em;">
                         <p style="color: #acacac">NOTES</p>
@@ -117,8 +150,11 @@
                                     </button>
                                     <ul class="dropdown-menu">
                                         <li><a href="{{'http://dx.doi.org/' + currPaper.doi}}">Go To Paper Page</a></li>
-                                        <li><a href="#">Show references</a></li>
-                                        <li><a ng-click="postItem(currPaper)">The POST method</a></li>
+                                        <li><a href="{{'http://sci-hub.cc/' + currPaper.doi}}">Want this?&nbsp;😏</a></li>
+                                        <li><a ng-click="goMsAcademic(currPaper.doi)">Go Microsoft Academic...</a></li>
+                                        <li><a ng-click="goPartMsAcademic(currPaper.doi)">Abstracts and Keywords</a></li>
+                                        <li><a ng-click="getRefList(currPaper.doi)">Show references</a></li>
+                                        <li><a ng-click="getCitedBy(currPaper.doi)">Show cited by</a></li>
                                         <li><a ng-click="toggleEditing()">Edit...</a></li>
                                         <li><a href="#">Show relations</a></li>
                                         <li><a ng-click="deleteItem(currPaper.doi)" style="color: #ff0000">Delete Paper</a></li>
@@ -129,23 +165,24 @@
                             <p>{{currPaper.journal.name}}, {{currPaper.pubYear}}, Vol. {{currPaper.volume}}, pp. {{currPaper.startPage}}-{{currPaper.endPage}}</p>
                             <p><a href={{author.refAbout}} ng-repeat="author in currPaper.authorsList">{{author.givenName}}&nbsp;{{author.familyName}}, &nbsp;</a></p>
                         </div>
-                        <div class="col-sm-8" ng-hide="currAbstract.length==0 && isEditing==false">
+                        <div class="col-sm-8" ng-hide="currPaperAbstract.length==0 && isEditing==false">
                             <p>&nbsp;</p>
                             <p style="color: #acacac;">ABSTRACT</p>
-                            <p ng-bind="currAbstract"></p>
+                            <p ng-bind="currPaper.Abstract"></p>
                         </div>
 
                         <div class="col-sm-4" ng-hide="currPaper.Keywords.length==0">
                             <p>&nbsp;</p>
                             <p style="color: #acacac">TAGS</p>
                             <p>
-                                <span class="badge" style="background-color: #0094ff; margin-right: 5px;" ng-repeat="kw in currPaper.Keywords">{{kw}}</span>
+                                <span class="badge" ng-click="showKwd(kw)" style="background-color: #0094ff; margin-right: 5px;" ng-repeat="kw in currPaper.Keywords">{{kw}}</span>
                             </p>
                             <p>&nbsp;</p>
                         </div>
 
                         <div class="col-sm-12 pull-left" style="margin-top: 1em;">
                             <p style="color: #acacac">NOTES</p>
+                            <p>{{currNote}}</p>
                         </div>
                     </div>
                 </div>
@@ -156,43 +193,29 @@
                         <h5 style="color: #acacac;">
                             <span class="glyphicon glyphicon-file" style="font-size: 12.5px;"></span>&nbsp;&nbsp;
                             PAPER
-                            <button type="button" class="btn btn-default pull-right" style="margin-top: -0.5em; margin-left:5px; border-width: 0px; font-size: 14px;"><span class="glyphicon glyphicon-flag"></span></button>
-                            <button type="button" class="btn btn-default pull-right" style="margin-top: -0.5em; margin-left:5px; border-width: 0px; font-size: 14px;" ng-click="toggleEditing()"><span class="glyphicon glyphicon-floppy-disk"></span></button>
+                            <button type="button" class="btn btn-default pull-right" style="margin-top: -0.5em; margin-left:5px; border-width: 0px; font-size: 14px;" ng-click="changeNote()"><span class="glyphicon glyphicon-floppy-disk"></span></button>
                         </h5>
                         <h3 ng-bind="currPaper.title"></h3>
                         <p>{{currPaper.journal.name}}, {{currPaper.pubYear}}, Vol. {{currPaper.volume}}, pp. {{currPaper.startPage}}-{{currPaper.endPage}}</p>
                         <p><a href={{author.refAbout}} ng-repeat="author in currPaper.authorsList">{{author.givenName}}&nbsp;{{author.familyName}}, &nbsp;</a></p>
                     </div>
 
-
-                    <div class="col-sm-12">
-                        <form role="form">
-                            <div class="form-group">
-                                <p style="color: #acacac;">ABSTRACT</p>
-                                <textarea ng-model="currAbstract" class="form-control" rows="3"></textarea>
-                            </div>
-                        </form>
-                    </div>
-
-                    <div class="col-sm-12">
-                        <form role="form">
-                            <div class="form-group">
-                                <p style="color: #acacac;">KEYWORDS</p>
-                                <textarea ng-model="currKeywords" class="form-control" rows="3"></textarea>
-                            </div>
-                        </form>
-                    </div>
-
                     <div class="col-sm-12" style="margin-top: 1em;">
                         <form role="form">
                             <div class="form-group">
                                 <p style="color: #acacac;">NOTES</p>
-                                <textarea ng-model="currNotes" class="form-control" rows="3"></textarea>
+                                <textarea ng-model="currNote" class="form-control" rows="3"></textarea>
                             </div>
                         </form>
 
                     </div>
                     <p>&nbsp;</p>
+                </div>
+            </div>
+
+            <div class="col-sm-12" ng-show="nowActBtn==2">
+                <div style="margin: 1em" ng-controller='myCtrl'>
+                    <nvd3 options='options' data='data'></nvd3>
                 </div>
             </div>
 
@@ -205,4 +228,7 @@
     @Scripts.Render("~/Scripts/angular.js")
     @Scripts.Render("~/Scripts/angular-ui-router.js")
     @Scripts.Render("~/Scripts/app/ke_controller.js")
+    @Scripts.Render("~/bower_components/d3/d3.js")
+    @Scripts.Render("~/bower_components/nvd3/build/nv.d3.js")
+    @Scripts.Render("~/bower_components/angular-nvd3/dist/angular-nvd3.js")
 }

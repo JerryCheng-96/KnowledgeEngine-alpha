@@ -20,7 +20,12 @@ namespace KE_Angular.Models
         public String endPage;
         public String pubDate;
         public Uri refAbout;
-        public int msId;
+        public long msId;
+        public String Abstract;
+        public List<string> Keywords;
+        public String Note;
+        public List<string> refDoiList;
+
 
         public Paper()
         {
@@ -34,6 +39,10 @@ namespace KE_Angular.Models
             pubDate = "";
             refAbout = null;
             msId = -1;
+            Abstract = "";
+            Keywords = new List<string>();
+            Note = "";
+            refDoiList = new List<string>();
         }
 
         public Paper(String inDoi)
@@ -48,9 +57,14 @@ namespace KE_Angular.Models
             refAbout = null;
             msId = -1;
 
+            Abstract = "";
+            Keywords = new List<string>();
+            Note = "";
+            refDoiList = new List<string>();
+
             doi = inDoi;
         }
-        
+
         public Paper(Dictionary<String, object> thePaperDict)
         {
             title = (String)thePaperDict["title"];
@@ -71,10 +85,26 @@ namespace KE_Angular.Models
             journal = null;
             volume = (String)thePaperDict["volume"];
             startPage = (String)thePaperDict["startPage"];
-            endPage =  (String)thePaperDict["endPage"];
+            endPage = (String)thePaperDict["endPage"];
             pubDate = (String)thePaperDict["pubDate"];
             refAbout = new Uri((String)thePaperDict["refAbout"]);
             msId = int.Parse((String)thePaperDict["msId"]);
+            try
+            {
+                Abstract = (String)thePaperDict["abstract"];
+            }
+            catch (KeyNotFoundException)
+            {
+                Abstract = "";
+            }
+            try
+            {
+                Note = (string)thePaperDict["note"];
+            }
+            catch (KeyNotFoundException)
+            {
+                Note = "";
+            }
         }
 
         public Dictionary<String, object> GetDictionary()
@@ -88,6 +118,8 @@ namespace KE_Angular.Models
                 { "refAbout", refAbout.ToString() },
                 { "doi", doi },
                 { "msId", msId.ToString() },
+                { "Abstract", Abstract },
+                { "Note", Note }
             };
         }
 
@@ -138,7 +170,7 @@ namespace KE_Angular.Models
             }
             catch (System.FormatException)
             {
-                year = int.Parse(thePaper.pubDate); 
+                year = int.Parse(thePaper.pubDate);
             }
             doi = thePaper.doi;
             refAbout = thePaper.refAbout.ToString();
@@ -159,7 +191,7 @@ namespace KE_Angular.Models
             refAbout = null;
             msId = -1;
         }
-        
+
         public Author(Dictionary<String, object> theAuthorDict)
         {
             familyName = (String)theAuthorDict["familyName"];
@@ -167,7 +199,7 @@ namespace KE_Angular.Models
             refAbout = new Uri((String)theAuthorDict["refAbout"]);
             msId = int.Parse((String)theAuthorDict["msId"]);
         }
-        
+
         public Author(IRecord theAuthorDict)
         {
             familyName = (String)theAuthorDict["familyName"];
@@ -214,7 +246,7 @@ namespace KE_Angular.Models
             refAbout = new Uri((String)theJournalDict["refAbout"]);
             msId = int.Parse((String)theJournalDict["msId"]);
         }
- 
+
         public Dictionary<String, object> GetDictionary()
         {
             return new Dictionary<string, object>

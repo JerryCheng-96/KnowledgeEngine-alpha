@@ -66,7 +66,14 @@ namespace KE_Angular.Models
 
             res = from target in xe.Descendants(j2 + "pageEnd")
                   select target.Value;
-            thePaper.endPage = (res.First());
+            try
+            {
+                thePaper.endPage = (res.First());
+            }
+            catch (InvalidOperationException)
+            {
+                thePaper.endPage = "";
+            }
 
             res = from target in xe.Descendants(j0 + "date")
                   select target.Value;
@@ -81,11 +88,11 @@ namespace KE_Angular.Models
             thePaper.journal.name = resNode2.First().Value;
 
             res = from t in ((XElement)xe.Nodes().First()).Nodes()
-                           where ((XElement)t).Name == j0 + "title"
-                           select ((XElement)t).Value;
+                  where ((XElement)t).Name == j0 + "title"
+                  select ((XElement)t).Value;
             thePaper.title = res.First();
 
-            thePaper.refAbout = new Uri(((XElement)xe.Nodes().First()).FirstAttribute.Value); 
+            thePaper.refAbout = new Uri(((XElement)xe.Nodes().First()).FirstAttribute.Value);
 
             return thePaper;
         }
