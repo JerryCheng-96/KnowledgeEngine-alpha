@@ -34,6 +34,29 @@ ke_app.controller('myCtrl', function ($rootScope, $scope) {
         }
     };
 
+    $scope.smallOptions = {
+        chart: {
+            "type": 'forceDirectedGraph',
+            "height": 300,
+            "width": 350,
+            //"margin": {
+            //    "top": 20,
+            //    "right": 20,
+            //    "bottom": 20,
+            //    "left": 20
+            //},
+            "color": function (d) {
+                return color(d.group)
+            },
+            nodeExtras: function (node) {
+                node && node
+                    .append("text")
+                    .text(function (d) { return d.show })
+                    .style('font-size', '10px');
+            }
+        }
+    };
+
     $rootScope.data = {
         "nodes": [
             { "name": "Myriel", "group": 1 },
@@ -376,8 +399,6 @@ ke_app.controller('myCtrl', function ($rootScope, $scope) {
 ke_app.controller('PaperListCtrl', function ($scope, $rootScope, $http) {
     $scope.addQueryString = '';
 
-
-
     $scope.items = [];
     $scope.currPaper = {
         "title": "Chemical intervention in plant sugar signalling increases yield and resilience",
@@ -500,6 +521,7 @@ ke_app.controller('PaperListCtrl', function ($scope, $rootScope, $http) {
     $scope.isShowingCited = false;
     $scope.isShowingWebTag = false;
     $scope.isShowingKwd = false;
+    $scope.isShowingGraph = false;
     $scope.isAddingItem = false;
     $scope.currTag = "";
 
@@ -561,6 +583,7 @@ ke_app.controller('PaperListCtrl', function ($scope, $rootScope, $http) {
         if ($rootScope.nowActBtn == 1) {
             $scope.getItemsList();
         }
+        $scope.isShowingGraph = false;
     }
 
     $scope.getThePaper = function (doi) {
@@ -641,6 +664,7 @@ ke_app.controller('PaperListCtrl', function ($scope, $rootScope, $http) {
                 $scope.items = response.data;
                 $scope.getThePaper($scope.items[0].doi);
                 $scope.addQueryString = "";
+                $scope.searchString = "";
             }, function errorCallback(response) {
             });
     }
@@ -652,9 +676,21 @@ ke_app.controller('PaperListCtrl', function ($scope, $rootScope, $http) {
                 $scope.items = response.data;
                 $scope.getThePaper($scope.items[0].doi);
                 $scope.addQueryString = "";
+                $scope.searchString = "";
             }, function errorCallback(response) {
             });
     }
+
+    $scope.getAllRelative = function (doi) {
+        $http.get("/Home/RelativeList?doi=" + doi)
+            .then(function successCallback(response) {
+                $scope.items = response.data;
+                $scope.addQueryString = "";
+                $scope.searchString = "";
+            }, function errorCallback(response) {
+            });
+    }
+
 
 
     $scope.showGraph = function () {
@@ -666,6 +702,23 @@ ke_app.controller('PaperListCtrl', function ($scope, $rootScope, $http) {
             $scope.getGraph('MATCH path = (n:WebPage)-[r]->(m) RETURN path');
             $rootScope.nowActBtn = 2;
         }
+    }
+
+    $scope.showSmallGraph = function (cypherState) {
+        $scope.getAllRelative($scope.currPaper.doi);
+        $scope.getGraph('MATCH path = (n:Paper)-[r]-(m) WHERE n.doi=\'' + $scope.currPaper.doi + '\' RETURN path')
+        $scope.isShowingGraph = true;
+    }
+
+    $scope.showSmallGraphPage = function (cypherState) {
+        $scope.getGraph('MATCH path = (n:WebPage)-[r]-(m) WHERE n.url=\'' + $scope.currWebpage.attr.url + '\' RETURN path')
+        $scope.isShowingGraph = true;
+    }
+
+    $scope.cancelShowGraph = function () {
+        $scope.isShowingGraph = false;
+        $scope.addQueryString = '';
+        $scope.refreshList();
     }
 
     $scope.getGraph = function (cypherState) {

@@ -47,6 +47,12 @@ namespace KE_Angular.Controllers
             return Content(Paper.GetListJson(Paper.GetItemList(neo4jIf.GetCitePaperList(doi))), "application/json");
         }
 
+        public ContentResult RelativeList(String doi)
+        {
+            Neo4jInterface neo4jIf = new Neo4jInterface("bolt://localhost:7687", "neo4j", "19961117JC");
+            return Content(Paper.GetListJson(Paper.GetItemList(neo4jIf.GetAllRelativePaper(doi))), "application/json");
+        }
+
         public ContentResult GoMSAcademic(string doi)
         {
             Neo4jInterface neo4jIf = new Neo4jInterface("bolt://localhost:7687", "neo4j", "19961117JC");

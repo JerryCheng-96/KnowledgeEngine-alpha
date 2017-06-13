@@ -48,7 +48,7 @@
                     <div class="panel-body" style="padding-top: 1em;">
                         <form role="form">
                             <div class="input-group">
-                                <input type="text" class="form-control" placeholder="Search for..." style="margin: -10px; margin-left: -3px; margin-right: 0px; width: 232px" ng-model="searchString">
+                                <input type="text" class="form-control" placeholder="Search for..." style="margin: -10px; margin-left: -3px; margin-right: 0px; width: 240px" ng-model="searchString">
                                 <button ng-click="showGraph()" type="button" class="btn btn-default" style="margin-left: .5em; border-width: 0px; font-size: 14px;"><span class="glyphicon glyphicon-eye-open"></span></button>
                                 <button ng-click="refreshList()" type="button" class="btn btn-default" style="margin-left: .5em; border-width: 0px; font-size: 14px;"><span class="glyphicon glyphicon-refresh"></span></button>
                             </div><!-- /input-group -->
@@ -98,44 +98,68 @@
             </div>
 
             <div class="col-sm-8" ng-show="nowActBtn==0">
-                <div class="panel panel-default" style="margin-top: 1em; border-radius: 0px; overflow-x: auto; height: 490px;">
+                <div ng-show="!isShowingGraph">
+                    <div class="panel panel-default" style="margin-top: 1em; border-radius: 0px; overflow-x: auto; height: 490px;">
+                        <div class="panel-body" style="padding-top: 0.75em;">
+                            <div class="col-sm-12"></div>
+                            <h5 style="color: #acacac;">
+                                <span class="glyphicon glyphicon-globe" style="font-size: 12.5px;"></span>&nbsp;&nbsp;
+                                WEBPAGE
+                                <button type="button" class="btn btn-default pull-right" style="margin-top: -0.5em; margin-left:5px; border-width: 0px; font-size: 14px;"><span class="glyphicon glyphicon-flag"></span></button>
+                                <span class="btn-group pull-right" role="group" style="margin-top: -0.5em; margin-right: 0.5em; border-width: 0px; font-size: 14px;">
+                                    <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        Actions
+                                        <span class="caret"></span>
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li><a href="{{currPage.attr.url}}">Go to article...</a></li>
+                                        <li><a ng-click="showSmallGraphPage()">Show Relations</a></li>
+                                        <li><a ng-click="deletePage(currPage.attr.url)" style="color:#ff0000">Delete Page</a></li>
+                                    </ul>
+                                </span>
+                            </h5>
+                            <h3 ng-bind="currWebpage.attr.title"></h3>
+                            <h5 style="text-transform: uppercase; color: #acacac;"><span ng-show="currWebpage.attr.author!=null">{{currWebpage.attr.author}}, </span><span ng-show="currWebpage.attr.date_published!=null">{{currWebpage.attr.date_published}} - </span>{{currWebpage.attr.domain}}</h5>
+                            <p><a href="{{currWebpage.attr.url}}">{{currWebpage.attr.url}}</a></p>
+                            <p>{{currWebpage.attr.excerpt}}</p>
+                        </div>
+                        <div class="col-sm-12" ng-hide="currWebpage.tags.length==0">
+                            <p style="color: #acacac">TAGS</p>
+                            <p>
+                                <span class="badge" style="background-color: #0094ff; margin-right: 5px;" ng-click="showWebTag(kw)" ng-repeat="kw in currWebpage.tags">{{kw}}</span>
+                            </p>
+                        </div>
+                        <div class="col-sm-12 pull-left" style="margin-top: 1em;">
+                            <p style="color: #acacac">NOTES</p>
+                        </div>
+                        <p>&nbsp;</p>
+                    </div>
+                </div>
+
+                <div ng-show="isShowingGraph">
                     <div class="panel-body" style="padding-top: 0.75em;">
                         <div class="col-sm-12"></div>
                         <h5 style="color: #acacac;">
-                            <span class="glyphicon glyphicon-globe" style="font-size: 12.5px;"></span>&nbsp;&nbsp;
-                            WEBPAGE
-                            <button type="button" class="btn btn-default pull-right" style="margin-top: -0.5em; margin-left:5px; border-width: 0px; font-size: 14px;"><span class="glyphicon glyphicon-flag"></span></button>
-                            <span class="btn-group pull-right" role="group" style="margin-top: -0.5em; margin-right: 0.5em; border-width: 0px; font-size: 14px;">
-                                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                    Actions
-                                    <span class="caret"></span>
-                                </button>
-                                <ul class="dropdown-menu">
-                                    <li><a href="#">Dropdown link</a></li>
-                                    <li><a ng-click="deletePage(currPage.attr.url)" style="color:#ff0000">Delete Page</a></li>
-                                </ul>
-                            </span>
+                            <span class="glyphicon glyphicon-file" style="font-size: 12.5px;"></span>&nbsp;&nbsp;
+                            PAPER
+                            <button type="button" class="btn btn-default pull-right" style="margin-top: -0.5em; margin-left:5px; border-width: 0px; font-size: 14px;" ng-click="cancelShowGraph()"><span class="glyphicon glyphicon-remove"></span></button>
                         </h5>
                         <h3 ng-bind="currWebpage.attr.title"></h3>
                         <h5 style="text-transform: uppercase; color: #acacac;"><span ng-show="currWebpage.attr.author!=null">{{currWebpage.attr.author}}, </span><span ng-show="currWebpage.attr.date_published!=null">{{currWebpage.attr.date_published}} - </span>{{currWebpage.attr.domain}}</h5>
                         <p><a href="{{currWebpage.attr.url}}">{{currWebpage.attr.url}}</a></p>
                         <p>{{currWebpage.attr.excerpt}}</p>
                     </div>
-                    <div class="col-sm-12" ng-hide="currWebpage.tags.length==0">
-                        <p style="color: #acacac">TAGS</p>
-                        <p>
-                            <span class="badge" style="background-color: #0094ff; margin-right: 5px;" ng-click="showWebTag(kw)" ng-repeat="kw in currWebpage.tags">{{kw}}</span>
-                        </p>
+
+                    <div class="col-sm-12">
+                        <div style="margin: 1em" ng-controller='myCtrl'>
+                            <nvd3 options='options' data='data'></nvd3>
+                        </div>
                     </div>
-                    <div class="col-sm-12 pull-left" style="margin-top: 1em;">
-                        <p style="color: #acacac">NOTES</p>
-                    </div>
-                    <p>&nbsp;</p>
                 </div>
             </div>
 
             <div class="col-sm-8" ng-show="nowActBtn==1">
-                <div ng-show="!isEditing">
+                <div ng-show="(!isEditing)&&(!isShowingGraph)">
                     <div class="panel panel-default" style="margin-top: 1em; border-radius: 0px; overflow-x: auto; height: 490px;">
                         <div class="panel-body" style="padding-top: 0.75em;">
                             <div class="col-sm-12"></div>
@@ -155,8 +179,8 @@
                                         <li><a ng-click="goPartMsAcademic(currPaper.doi)">Abstracts and Keywords</a></li>
                                         <li><a ng-click="getRefList(currPaper.doi)">Show references</a></li>
                                         <li><a ng-click="getCitedBy(currPaper.doi)">Show cited by</a></li>
+                                        <li><a ng-click="showSmallGraph()">Show relations</a></li>
                                         <li><a ng-click="toggleEditing()">Edit...</a></li>
-                                        <li><a href="#">Show relations</a></li>
                                         <li><a ng-click="deleteItem(currPaper.doi)" style="color: #ff0000">Delete Paper</a></li>
                                     </ul>
                                 </span>
@@ -211,6 +235,28 @@
                     </div>
                     <p>&nbsp;</p>
                 </div>
+
+                <div ng-show="isShowingGraph">
+                    <div class="panel-body" style="padding-top: 0.75em;">
+                        <div class="col-sm-12"></div>
+                        <h5 style="color: #acacac;">
+                            <span class="glyphicon glyphicon-file" style="font-size: 12.5px;"></span>&nbsp;&nbsp;
+                            PAPER
+                            <button type="button" class="btn btn-default pull-right" style="margin-top: -0.5em; margin-left:5px; border-width: 0px; font-size: 14px;" ng-click="cancelShowGraph()"><span class="glyphicon glyphicon-remove"></span></button>
+                        </h5>
+                        <h3 ng-bind="currPaper.title"></h3>
+                        <p>{{currPaper.journal.name}}, {{currPaper.pubYear}}, Vol. {{currPaper.volume}}, pp. {{currPaper.startPage}}-{{currPaper.endPage}}</p>
+                        <p><a href={{author.refAbout}} ng-repeat="author in currPaper.authorsList">{{author.givenName}}&nbsp;{{author.familyName}}, &nbsp;</a></p>
+                    </div>
+
+                    <div class="col-sm-12">
+                        <div style="margin: 1em" ng-controller='myCtrl'>
+                            <nvd3 options='options' data='data'></nvd3>
+                        </div>
+                    </div>
+                </div>
+
+
             </div>
 
             <div class="col-sm-12" ng-show="nowActBtn==2">

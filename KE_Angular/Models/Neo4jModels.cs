@@ -143,6 +143,19 @@ namespace KE_Angular.Models
             return paperList;
         }
 
+        public List<Paper> GetAllRelativePaper(String doi)
+        {
+            List<Paper> paperList = new List<Paper>();
+            var paperRes = _driver.Session().Run("MATCH (p:Paper {doi:{doi}})-[]-(n:Paper) RETURN n.doi AS doi", new Dictionary<string, object> { { "doi", doi } });
+
+            foreach (var item in paperRes)
+            {
+                paperList.Add(GetPaper((String)item["doi"]));
+            }
+
+            return paperList;
+        }
+
         public Paper GetPaper(String doi)
         {
             var paperRes = _driver.Session().Run("MATCH (p:Paper) WHERE p.doi = {doi} RETURN p.title AS title, p.volume AS volume, p.msId AS msId, p.refAbout AS refAbout, p.startPage AS startPage, p.endPage AS endPage, p.pubDate AS pubDate, p.abstract AS abstract, p.Note AS note", new Dictionary<String, object> { { "doi", doi } });
